@@ -56,4 +56,65 @@ const login = async (req, res) => {
     }
 };
 
-module.exports = { register, login };
+const refresh = async (req, res) => {
+    try {
+        const { refreshToken } = req.body;
+
+        // Validasi input dasar
+        if (!refreshToken) {
+            return res.status(400).json({
+                success: false,
+                message: 'Refresh token is required'
+            });
+        }
+
+        const result = await authService.refresh(refreshToken);
+
+        res.status(200).json({
+            success: true,
+            message: 'Refresh token successful',
+            data: result
+        });
+
+    } catch (error) {
+        res.status(401).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+const logout = async (req, res) => {
+    try {
+        const { refreshToken } = req.body;
+
+        // Validasi input dasar
+        if (!refreshToken) {
+            return res.status(400).json({
+                success: false,
+                message: 'Refresh token is required'
+            });
+        }
+
+        const result = await authService.logout(refreshToken);
+
+        res.status(200).json({
+            success: true,
+            message: 'Logout successful',
+            data: result
+        });
+
+    } catch (error) {
+        res.status(400).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+module.exports = { 
+    register, 
+    login, 
+    refresh, 
+    logout 
+};

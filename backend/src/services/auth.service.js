@@ -1,5 +1,6 @@
 const bcrypt = require('bcrypt');
 const prisma = require('../config/prisma');
+const { generateAccessToken, generateRefreshToken, verifyRefreshToken } = require('../utils/jwt');
 
 const register = async (email, password, name) => {
 
@@ -29,8 +30,6 @@ const register = async (email, password, name) => {
     return userWithoutPassword;
 };
 
-const { generateAccessToken } = require('../utils/jwt');
-
 const login = async (email, password) => {
 
     // Cari user berdasarkan email
@@ -49,16 +48,66 @@ const login = async (email, password) => {
         throw new Error('Invalid email or password');
     }
 
-    // Generate access token
+    // Generate kedua token
     const accessToken = generateAccessToken(user.id);
+    const refreshToken = generateRefreshToken(user.id);
+
+    // Simpan refresh token ke database
+    await prisma.refreshToken.create({
+        data: {
+            userId: user.id,
+            token: refreshToken,
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        },
+    });
 
     // Kembalikan data user tanpa password
     const { password: _pwd, ...userWithoutPassword } = user;
 
     return {
         accessToken,
+        refreshToken,
         user: userWithoutPassword
     };
 };
 
-module.exports = { register, login };
+const refresh = async (refreshToken) => {
+        // Verifikasi token valid secara signature
+        const payload = verifyRefreshToken(refreshToken);
+
+        // Cek apakah token ada di database (belum di-revoke)
+        const storedToken = await prisma.refreshToken.findUnique({
+            where: { token: refreshToken }
+        });
+
+        if (!storedToken) {
+            throw new Error('Refresh token not found');
+        }
+
+        // Cek apakah token sudah expired
+        if (storedToken.expiresAt < new Date()) {
+            throw new Error('Refresh token expired');
+        }
+
+        // Generate access token baru
+        const accessToken = generateAccessToken(payload.id);
+
+        return { accessToken };
+};
+
+const logout = async (refreshToken) => {
+
+    // Hapus refresh token dari database
+    await prisma.refreshToken.delete({
+        where: { token: refreshToken }
+    });
+
+    return true;
+};
+
+module.exports = { 
+    register, 
+    login, 
+    refresh, 
+    logout 
+};
