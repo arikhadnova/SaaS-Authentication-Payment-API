@@ -10,6 +10,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Routes
+const authRoutes = require('./src/routes/auth.routes');
+app.use('/auth', authRoutes);
+
 // Healt check routes
 app.get('/', (req, res) => {
     res.json({ message: 'API is running' });
