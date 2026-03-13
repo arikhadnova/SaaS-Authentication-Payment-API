@@ -29,4 +29,36 @@ const register = async (email, password, name) => {
     return userWithoutPassword;
 };
 
-module.exports = { register };
+const { generateAccessToken } = require('../utils/jwt');
+
+const login = async (email, password) => {
+
+    // Cari user berdasarkan email
+    const user = await prisma.user.findUnique({
+        where: { email }
+    });
+
+    if (!user) {
+        throw new Error('Invalid email or password');
+    }
+
+    // Bandingkan password dengan hash di database
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+        throw new Error('Invalid email or password');
+    }
+
+    // Generate access token
+    const accessToken = generateAccessToken(user.id);
+
+    // Kembalikan data user tanpa password
+    const { password: _pwd, ...userWithoutPassword } = user;
+
+    return {
+        accessToken,
+        user: userWithoutPassword
+    };
+};
+
+module.exports = { register, login };
