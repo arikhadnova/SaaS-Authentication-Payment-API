@@ -25,7 +25,7 @@ const register = async (email, password, name) => {
     });
 
     // Kembalikan data user tanpa password
-    const { password, ...userWithoutPassword } = user;
+    const { password: _pwd, ...userWithoutPassword } = user;
     return userWithoutPassword;
 };
 
