@@ -105,9 +105,23 @@ const logout = async (refreshToken) => {
     return true;
 };
 
+const getMe = async (userId) => {
+    const user = await prisma.user.findUnique({
+        where: { id: userId }
+    });
+
+    if (!user) {
+        throw new Error('User not found');
+    }
+
+    const { password: _pwd, ...userWithoutPassword } = user;
+    return userWithoutPassword;
+};
+
 module.exports = { 
     register, 
     login, 
     refresh, 
-    logout 
+    logout,
+    getMe 
 };

@@ -112,9 +112,28 @@ const logout = async (req, res) => {
     }
 };
 
+const getMe = async (req, res) => {
+    try {
+        // req.user.userId diisi oleh middleware
+        const user = await authService.getMe(req.user.userId);
+
+        res.status(200).json({
+            success: true,
+            data: user
+        });
+
+    } catch (error) {
+        res.status(404).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
 module.exports = { 
     register, 
     login, 
     refresh, 
-    logout 
+    logout,
+    getMe 
 };
