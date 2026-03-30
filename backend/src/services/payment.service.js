@@ -78,4 +78,72 @@ const getTransactionHistory = async (userId) => {
   });
 };
 
-module.exports = { getProducts, createTransaction, getTransactionHistory };
+const crypto = require('crypto');
+
+const handleWebhook = async (payload) => {
+
+  const {
+    order_id,
+    status_code,
+    gross_amount,
+    signature_key,
+    transaction_status,
+    fraud_status,
+    payment_type
+  } = payload;
+
+  // Verifikasi signature
+  const serverKey = process.env.MIDTRANS_SERVER_KEY;
+  const expectedSignature = crypto
+    .createHash('sha512')
+    .update(`${order_id}${status_code}${gross_amount}${serverKey}`)
+    .digest('hex');
+
+  if (expectedSignature !== signature_key) {
+    throw new Error('Invalid signature');
+  }
+
+  // Tentukan status berdasarkan response Midtrans
+  let transactionStatus;
+  let paymentStatus;
+
+  if (transaction_status === 'capture' || transaction_status === 'settlement') {
+    if (fraud_status === 'accept' || !fraud_status) {
+      transactionStatus = 'paid';
+      paymentStatus = 'paid';
+    }
+  } else if (transaction_status === 'cancel' || transaction_status === 'deny') {
+    transactionStatus = 'failed';
+    paymentStatus = 'failed';
+  } else if (transaction_status === 'expire') {
+    transactionStatus = 'expired';
+    paymentStatus = 'expired';
+  } else {
+    transactionStatus = 'pending';
+    paymentStatus = 'pending';
+  }
+
+  // Update transaksi di database
+  await prisma.transaction.update({
+    where: { id: order_id },
+    data: {
+      status: transactionStatus,
+      updatedAt: new Date()
+    }
+  });
+
+  // Update payment di database
+  await prisma.payment.update({
+    where: { transactionId: order_id },
+    data: {
+      status: paymentStatus,
+      paymentMethod: payment_type,
+      gatewayReference: payload.transaction_id,
+      paidAt: transactionStatus === 'paid' ? new Date() : null
+    }
+  });
+
+  return { message: 'Webhook processed successfully' };
+};
+
+module.exports = { getProducts, createTransaction, getTransactionHistory, handleWebhook };

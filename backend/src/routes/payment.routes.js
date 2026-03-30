@@ -5,6 +5,7 @@ const { authenticate } = require('../middleware/auth.middleware');
 
 // Public
 router.get('/products', paymentController.getProducts);
+router.post('/webhook', paymentController.handleWebhook);
 
 // Protected
 router.post('/create', authenticate, paymentController.createTransaction);
