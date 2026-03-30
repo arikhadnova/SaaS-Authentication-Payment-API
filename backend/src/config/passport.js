@@ -1,6 +1,5 @@
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const GitHubStrategy = require('passport-github2').Strategy;
 const prisma = require('./prisma');
 
 passport.use(new GoogleStrategy({
@@ -14,30 +13,56 @@ async (accessToken, refreshToken, profile, done) => {
     const name = profile.displayName;
     const providerId = profile.id;
 
+    // Cek apakah OAuth account sudah ada
     let oauthAccount = await prisma.oAuthAccount.findUnique({
-      where: { provider_providerId: { provider: 'google', providerId } },
+      where: {
+        provider_providerId: {
+          provider: 'google',
+          providerId
+        }
+      },
       include: { user: true }
     });
 
-    if (oauthAccount) return done(null, oauthAccount.user);
+    if (oauthAccount) {
+      // Sudah pernah login dengan Google → langsung return user
+      return done(null, oauthAccount.user);
+    }
 
-    let user = await prisma.user.findUnique({ where: { email } });
+    // Cek apakah email sudah terdaftar dengan cara lain
+    let user = await prisma.user.findUnique({
+      where: { email }
+    });
 
     if (!user) {
+      // Belum ada → buat user baru
       user = await prisma.user.create({
-        data: { email, name, provider: 'google' }
+        data: {
+          email,
+          name,
+          provider: 'google'
+        }
       });
     }
 
+    // Buat OAuth account baru
     await prisma.oAuthAccount.create({
-      data: { userId: user.id, provider: 'google', providerId, accessToken }
+      data: {
+        userId: user.id,
+        provider: 'google',
+        providerId,
+        accessToken
+      }
     });
 
     return done(null, user);
+
   } catch (error) {
     return done(error, null);
   }
 }));
+
+const GitHubStrategy = require('passport-github2').Strategy;
 
 passport.use(new GitHubStrategy({
   clientID: process.env.GITHUB_CLIENT_ID,
@@ -51,28 +76,54 @@ async (accessToken, refreshToken, profile, done) => {
     const name = profile.displayName || profile.username;
     const providerId = String(profile.id);
 
-    if (!email) return done(new Error('No email found from GitHub'), null);
+    if (!email) {
+      return done(new Error('No email found from GitHub'), null);
+    }
 
+    // Cek apakah OAuth account sudah ada
     let oauthAccount = await prisma.oAuthAccount.findUnique({
-      where: { provider_providerId: { provider: 'github', providerId } },
+      where: {
+        provider_providerId: {
+          provider: 'github',
+          providerId
+        }
+      },
       include: { user: true }
     });
 
-    if (oauthAccount) return done(null, oauthAccount.user);
+    if (oauthAccount) {
+      // Sudah pernah login dengan GitHub
+      return done(null, oauthAccount.user);
+    }
 
-    let user = await prisma.user.findUnique({ where: { email } });
+    // Cek apakah email sudah terdaftar
+    let user = await prisma.user.findUnique({
+      where: { email }
+    });
 
     if (!user) {
+      // Buat user baru
       user = await prisma.user.create({
-        data: { email, name, provider: 'github' }
+        data: {
+          email,
+          name,
+          provider: 'github'
+        }
       });
     }
 
+    // Buat OAuth account baru
     await prisma.oAuthAccount.create({
-      data: { userId: user.id, provider: 'github', providerId, accessToken }
+      data: {
+        userId: user.id,
+        provider: 'github',
+        providerId,
+        accessToken
+      }
     });
 
     return done(null, user);
+
   } catch (error) {
     return done(error, null);
   }
