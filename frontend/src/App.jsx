@@ -3,6 +3,8 @@ import { useAuth } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import DashboardPage from './pages/DashboardPage';
+import ProductsPage from './pages/ProductsPage';
 
 // Protected route — redirect ke login kalau belum login
 const ProtectedRoute = ({ children }) => {
@@ -25,7 +27,23 @@ function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/" element={<Navigate to="/login" />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/products"
+          element={
+            <ProtectedRoute>
+              <ProductsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/" element={<Navigate to="/dashboard" />} />
       </Routes>
     </div>
   );

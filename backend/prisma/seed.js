@@ -2,6 +2,12 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 async function main() {
+
+  // // Hapus berurutan sesuai relasi
+  // await prisma.payment.deleteMany();
+  // await prisma.transaction.deleteMany();
+  // await prisma.product.deleteMany();
+
   await prisma.product.createMany({
     data: [
       {
