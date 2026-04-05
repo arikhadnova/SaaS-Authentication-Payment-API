@@ -40,7 +40,7 @@ const Navbar = () => {
                         <>
                         <Link 
                             to="/login" 
-                            className="text-gray-600 hover:text-blue-600 text-sm"
+                            className="text-gray-600 px-4 py-2 hover:text-blue-600 text-sm"
                         >
                             Login
                         </Link>
