@@ -7,8 +7,14 @@ import RegisterPage from "./pages/RegisterPage";
 // Protected route — redirect ke login kalau belum login
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
+
+  // Tunggu dulu sampai proses cek token selesai
   if (loading) return <div className="text-center py-10">Loading...</div>;
+
+  // Kalau belum login → lempar ke login
   if (!user) return <Navigate to="/login" />;
+
+  // Kalau sudah login → boleh masuk
   return children;
 };
 

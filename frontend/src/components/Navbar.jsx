@@ -20,18 +20,20 @@ const Navbar = () => {
                 <div className="flex item-center gap-4">
                     {user ? (
                         <>
-                        <span className="text-gray-600">
+                        <span className="text-gray-600 py-1">
                             Hello, {user.name}
                         </span>
+
                         <Link
                             to="/dashboard"
-                            className="text-gray-600 hover:text-blue-600 text-sm"
+                            className="text-sm text-gray-600 hover:text-blue-600 font-medium px-3 py-2 rounded-lg hover:bg-gray-100 transition"
                         >
                             Dashboard
                         </Link>
+
                         <button 
                             onClick={handleLogout} 
-                            className="bg-red-500 text-4 px-2 py-2 rounded-lg text-sm hover:bg-red-600 transition"
+                            className="text-sm bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition font-medium"
                         >
                             Logout
                         </button>

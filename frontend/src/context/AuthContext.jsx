@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     const login = async (email, password) => {
-        const res = await authService.login(email, password);
+        const res = await authService.login({email, password});
         const { accessToken, refreshToken, user } = res.data.data;
         localStorage.setItem("accessToken", accessToken);
         localStorage.setItem("refreshToken", refreshToken);
