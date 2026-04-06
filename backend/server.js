@@ -27,7 +27,6 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(passport.initialize());
-app.use('/payment', paymentRoutes);
 
 
 // Swagger docs
@@ -39,6 +38,7 @@ const oauthRoutes = require('./src/routes/oauth.routes');
 
 app.use('/auth', authRoutes);
 app.use('/auth', oauthRoutes);
+app.use('/payment', paymentRoutes);
 
 // Healt check routes
 app.get('/', (req, res) => {
