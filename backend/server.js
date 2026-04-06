@@ -12,11 +12,18 @@ const app = express();
 
 // Middleware
 app.use(cors({
-    origin: [
-        'http://localhost:5173',
-        'https://saas-authentication-payment-91b5869fv-arikhadnovas-projects.vercel.app'
-    ],
-    credentials: true
+  origin: (origin, callback) => {
+    const allowed = [
+      'http://localhost:5173',
+      /\.vercel\.app$/
+    ];
+    if (!origin || allowed.some(o => typeof o === 'string' ? o === origin : o.test(origin))) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
 }));
 app.use(express.json());
 app.use(passport.initialize());
