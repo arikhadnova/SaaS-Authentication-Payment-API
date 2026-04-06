@@ -47,16 +47,21 @@ const createTransaction = async (userId, productId) => {
       gross_amount: product.price
     },
     customer_details: {
-      first_name: user.name,
-      email: user.email
-    },
-    item_details: [{
-      id: product.id,
-      price: product.price,
-      quantity: 1,
-      name: product.name
-    }]
-  });
+    first_name: user.name,
+    email: user.email
+  },
+  item_details: [{
+    id: product.id,
+    price: product.price,
+    quantity: 1,
+    name: product.name
+  }],
+  callbacks: {
+    finish: 'https://saas-authentication-payment-api.vercel.app/dashboard',
+    error: 'https://saas-authentication-payment-api.vercel.app/dashboard',
+    pending: 'https://saas-authentication-payment-api.vercel.app/dashboard'
+  }
+});
 
   return {
     transactionId: transaction.id,
